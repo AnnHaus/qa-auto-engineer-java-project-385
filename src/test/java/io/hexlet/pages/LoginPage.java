@@ -3,42 +3,47 @@ package io.hexlet.pages;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import java.time.Duration;
 
-public class LoginPage {
-    private final WebDriver driver;
-    private final WebDriverWait wait;
+public class LoginPage extends BasePage {
+
     private final By usernameField = By.cssSelector("input[name='username']");
     private final By passwordField = By.cssSelector("input[name='password']");
     private final By signInButton = By.cssSelector("button[type='submit']");
-    private final By dashboardMenuButton = By.xpath("//*[contains(text(), 'Dashboard')]");
+
+    private final By profileButton = By.xpath("//button[@aria-label='Profile']");
+
+    private final By logoutMenuButton = By.xpath("//*[contains(@role, 'menuitem') or contains(@class, 'Menu')]//*[contains(text(), 'Logout') or contains(text(), 'Sign out')]");
 
     public LoginPage(WebDriver driver) {
-        this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-    }
-
-    public void enterUsername(String username) {
-        wait.until(ExpectedConditions.visibilityOfElementLocated(usernameField)).sendKeys(username);
-    }
-
-    public void enterPassword(String password) {
-        wait.until(ExpectedConditions.visibilityOfElementLocated(passwordField)).sendKeys(password);
-    }
-
-    public void clickSignIn() {
-        wait.until(ExpectedConditions.elementToBeClickable(signInButton)).click();
+        super(driver);
     }
 
     public void login(String username, String password) {
-        enterUsername(username);
-        enterPassword(password);
-        clickSignIn();
+        wait.until(ExpectedConditions.visibilityOfElementLocated(usernameField)).sendKeys(username);
+        driver.findElement(passwordField).sendKeys(password);
+        wait.until(ExpectedConditions.elementToBeClickable(signInButton)).click();
     }
 
-    public boolean isWelcomeHeaderDisplayed() {
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(dashboardMenuButton)).isDisplayed();
+    public void logout() {
+        wait.until(ExpectedConditions.elementToBeClickable(profileButton)).click();
+
+        org.openqa.selenium.WebElement logoutBtn = wait.until(ExpectedConditions.presenceOfElementLocated(logoutMenuButton));
+
+        org.openqa.selenium.JavascriptExecutor js = (org.openqa.selenium.JavascriptExecutor) driver;
+        js.executeScript("arguments[0].click();", logoutBtn);
+    }
+
+    public boolean isLoggedIn() {
+        try {
+            org.openqa.selenium.support.ui.WebDriverWait shortWait =
+                    new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(2));
+
+            if (shortWait.until(ExpectedConditions.visibilityOfElementLocated(usernameField)).isDisplayed()) {
+                return false;
+            }
+        } catch (Exception e) {
+            return true;
+        }
+        return true;
     }
 }
-
