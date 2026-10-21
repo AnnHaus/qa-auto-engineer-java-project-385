@@ -1,47 +1,54 @@
 package io.hexlet.tests;
 
 import io.hexlet.pages.LoginPage;
-import io.hexlet.pages.TaskStatusesPage;
-import org.junit.jupiter.api.AfterEach;
+import io.hexlet.pages.StatusesPage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
-public class TaskStatusCrudTest {
-    private WebDriver driver;
+public class TaskStatusCrudTest extends BaseUiTest {
     private LoginPage loginPage;
-    private TaskStatusesPage taskStatusesPage;
+    private StatusesPage statusesPage;
 
     @BeforeEach
-    public void setUp() {
-        driver = new ChromeDriver();
-        driver.manage().window().maximize();
-        driver.get("http://localhost:5173/#/");
-
+    public void loginBeforeTest() {
         loginPage = new LoginPage(driver);
-        taskStatusesPage = new TaskStatusesPage(driver);
+        statusesPage = new StatusesPage(driver);
 
         loginPage.login("admin", "password");
+        statusesPage.goToStatusesSection();
     }
 
     @Test
-    public void testCreateTaskStatus() {
-        String statusName = "In Progress";
-        String statusSlug = "in-progress";
+    public void testFullStatusCrudLifecycle() {
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String statusName = "Column_" + timestamp;
+        String statusSlug = "slug_" + timestamp;
+        String updatedName = "Updated_" + timestamp;
 
-        taskStatusesPage.goToTaskStatusesSection();
-        taskStatusesPage.clickCreateStatus();
-        taskStatusesPage.createStatus(statusName, statusSlug);
-        assertTrue(taskStatusesPage.isStatusPresentInList(statusName),
-                "Статус с названием '" + statusName + "' не найден в таблице после сохранения!");
-    }
+        statusesPage.clickCreateStatus();
+        statusesPage.fillForm(statusName, statusSlug);
+        statusesPage.clickSave();
 
-    @AfterEach
-    public void tearDown() {
-        if (driver != null) {
-            driver.quit();
-        }
+        try { Thread.sleep(2000); } catch (InterruptedException e) { e.printStackTrace(); }
+        assertTrue(statusesPage.isStatusPresentInList(statusName), "Новый статус не появился в списке таблицы!");
+
+        statusesPage.clickEditStatus(statusName);
+        statusesPage.fillForm(updatedName, statusSlug);
+        statusesPage.clickSave();
+
+        try { Thread.sleep(2000); } catch (InterruptedException e) { e.printStackTrace(); }
+        assertTrue(statusesPage.isStatusPresentInList(updatedName), "Обновленное имя статуса не сохранился в таблице!");
+
+        statusesPage.clickEditStatus(updatedName);
+        statusesPage.deleteStatusViaForm();
+
+        try { Thread.sleep(2000); } catch (InterruptedException e) { e.printStackTrace(); }
+        assertFalse(statusesPage.isStatusPresentInList(updatedName), "Статус всё ещё присутствует в списке после удаления!");
+
+        statusesPage.massDeleteAllStatuses();
+        try { Thread.sleep(2000); } catch (InterruptedException e) { e.printStackTrace(); }
+        assertFalse(statusesPage.isStatusPresentInList(statusName), "Список статусов не очистился после массового удаления!");
     }
 }
