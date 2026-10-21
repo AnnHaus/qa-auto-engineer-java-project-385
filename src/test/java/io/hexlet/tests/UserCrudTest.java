@@ -2,45 +2,65 @@ package io.hexlet.tests;
 
 import io.hexlet.pages.LoginPage;
 import io.hexlet.pages.UsersPage;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-public class UserCrudTest {
-    private WebDriver driver;
+public class UserCrudTest extends BaseUiTest {
     private LoginPage loginPage;
     private UsersPage usersPage;
 
     @BeforeEach
-    public void setUp() {
-        driver = new ChromeDriver();
-        driver.manage().window().maximize();
-        driver.get("http://localhost:5173/#/");
-
+    public void loginBeforeTest() {
         loginPage = new LoginPage(driver);
         usersPage = new UsersPage(driver);
+
         loginPage.login("admin", "password");
+        usersPage.goToUsersSection();
     }
 
     @Test
-    public void testCreateUser() {
-        String email = "testuser@hexlet.io";
-        usersPage.goToUsersSection();
-        usersPage.clickCreateUser();
-        usersPage.createUser(email, "Ivan", "Ivanov");
+    public void testUserEmailValidation() {
+        String incorrectEmail = "bad-email-format";
 
-        org.junit.jupiter.api.Assertions.assertTrue(
-                usersPage.isUserPresentInList(email),
-                "Пользователь с email " + email + " не найден в списке после создания!"
-        );
+        usersPage.clickCreateUser();
+        usersPage.fillForm(incorrectEmail, "Test", "User");
+        usersPage.clickSave();
+
+        assertNotEquals("", usersPage.getEmailValidationError(), "Валидация некорректного email формата не сработала!");
     }
 
-    @AfterEach
-    public void tearDown() {
-        if (driver != null) {
-            driver.quit();
-        }
+    @Test
+    public void testFullUserCrudLifecycle() {
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String testEmail = "engineer" + timestamp + "@hexlet.io";
+        String uniqueFirstName = "Anna" + timestamp;
+        String updatedFirstName = "Alex" + timestamp;
+
+        usersPage.clickCreateUser();
+        usersPage.fillForm(testEmail, uniqueFirstName, "Dream");
+        usersPage.clickSave();
+
+        try { Thread.sleep(2000); } catch (InterruptedException e) { e.printStackTrace(); }
+        assertTrue(usersPage.isUserPresentInList(testEmail), "Новый пользователь не появился в списке таблицы!");
+
+        usersPage.clickEditUser(testEmail);
+        usersPage.fillForm(testEmail, updatedFirstName, "Dream");
+        usersPage.clickSave();
+
+        try { Thread.sleep(2000); } catch (InterruptedException e) { e.printStackTrace(); }
+        assertTrue(usersPage.isUserPresentInList(testEmail), "Пользователь исчез из списка после редактирования!");
+
+        usersPage.clickEditUser(testEmail);
+        usersPage.deleteUserViaForm();
+
+        try { Thread.sleep(2000); } catch (InterruptedException e) { e.printStackTrace(); }
+        assertFalse(usersPage.isUserPresentInList(testEmail), "Пользователь всё ещё присутствует в списке после удаления!");
+
+        usersPage.massDeleteAllUsers();
+        try { Thread.sleep(2000); } catch (InterruptedException e) { e.printStackTrace(); }
+        assertFalse(usersPage.isUserPresentInList(testEmail), "Список пользователей не очистился после массового удаления!");
     }
 }

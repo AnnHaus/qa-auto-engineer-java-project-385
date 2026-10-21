@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.hexlet.tests.UserCrudTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-10-21T16:20:42.923Z" hostname="AnnNik" time="81.124">
+  <properties/>
+  <testcase name="testUserEmailValidation()" classname="io.hexlet.tests.UserCrudTest" time="29.009"/>
+  <testcase name="testFullUserCrudLifecycle()" classname="io.hexlet.tests.UserCrudTest" time="52.096"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[Oct 21, 2026 7:20:47 PM org.openqa.selenium.devtools.CdpVersionFinder findNearestMatch
+WARNING: Unable to find CDP implementation matching 156
+Oct 21, 2026 7:20:47 PM org.openqa.selenium.chromium.ChromiumDriver lambda$new$5
+WARNING: Unable to find version of CDP to use for 156.0.8078.47. You may need to include a dependency on a specific version of the CDP using something similar to `org.seleniumhq.selenium:selenium-devtools-v86:4.25.0` where the version ("v86") matches the version of the chromium-based browser you're using and the version number of the artifact is the same as Selenium's.
+Oct 21, 2026 7:21:12 PM org.openqa.selenium.devtools.CdpVersionFinder findNearestMatch
+WARNING: Unable to find CDP implementation matching 156
+Oct 21, 2026 7:21:12 PM org.openqa.selenium.chromium.ChromiumDriver lambda$new$5
+WARNING: Unable to find version of CDP to use for 156.0.8078.47. You may need to include a dependency on a specific version of the CDP using something similar to `org.seleniumhq.selenium:selenium-devtools-v86:4.25.0` where the version ("v86") matches the version of the chromium-based browser you're using and the version number of the artifact is the same as Selenium's.
+]]></system-err>
+</testsuite>
