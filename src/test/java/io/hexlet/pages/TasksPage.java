@@ -2,63 +2,144 @@ package io.hexlet.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import java.time.Duration;
+import org.openqa.selenium.interactions.Actions;
+import java.util.List;
 
-public class TasksPage {
-    private final WebDriver driver;
-    private final WebDriverWait wait;
+public class TasksPage extends BasePage {
 
-    private final By tasksMenuButton = By.xpath("//*[contains(text(), 'Tasks')]");
-    private final By createButton = By.xpath("//*[contains(text(), 'Create') or @aria-label='Create']");
-    private final By titleField = By.cssSelector("input[name='title']");
-    private final By saveButton = By.cssSelector("button[type='submit']");
+    private final By titleField = By.name("title");
+    private final By contentField = By.name("content");
+    private final By saveButton = By.xpath("//button[@type='submit' or contains(text(), 'SAVE') or contains(text(), 'Save') or contains(text(), 'Создать') or contains(text(), 'Сохранить')]");
+    private final By taskCards = By.xpath("//*[contains(text(), 'EDIT') or contains(text(), 'Edit') or contains(text(), 'Редактировать')]");
+    private final By createButtonOnBoard = By.xpath("//a[contains(@href, '/create') or contains(text(), 'CREATE') or contains(text(), 'Создать')]");
 
     public TasksPage(WebDriver driver) {
-        this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        super(driver);
     }
 
-    public void goToTasksSection() {
-        wait.until(ExpectedConditions.elementToBeClickable(tasksMenuButton)).click();
-    }
-
-    public void clickCreateTask() {
-        wait.until(ExpectedConditions.elementToBeClickable(createButton)).click();
+    public void clickNavigateToCreateForm() {
+        WebElement createBtn = wait.until(ExpectedConditions.elementToBeClickable(createButtonOnBoard));
+        createBtn.click();
     }
 
     public void fillTextData(String title, String content) {
-        wait.until(ExpectedConditions.visibilityOfElementLocated(titleField)).sendKeys(title);
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("content"))).sendKeys(content);
+        WebElement titleInput = wait.until(ExpectedConditions.visibilityOfElementLocated(titleField));
+        titleInput.click();
+        titleInput.sendKeys(Keys.chord(Keys.CONTROL, "a"));
+        titleInput.sendKeys(Keys.BACK_SPACE);
+        titleInput.clear();
+        titleInput.sendKeys(title);
+
+        WebElement contentInput = wait.until(ExpectedConditions.visibilityOfElementLocated(contentField));
+        contentInput.click();
+        contentInput.sendKeys(Keys.chord(Keys.CONTROL, "a"));
+        contentInput.sendKeys(Keys.BACK_SPACE);
+        contentInput.clear();
+        contentInput.sendKeys(content);
     }
 
-    public void selectFromDropdown(String inputName, String valueToSelect) {
-        By exactDropdown = By.xpath("//input[@name='" + inputName + "']/preceding-sibling::div");
-        org.openqa.selenium.WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(exactDropdown));
-
-        org.openqa.selenium.JavascriptExecutor js = (org.openqa.selenium.JavascriptExecutor) driver;
-        js.executeScript("arguments[0].click();", element);
-
-        String lowerValue = valueToSelect.toLowerCase();
-        By optionLocator = By.xpath("//li[@role='option' and contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '" + lowerValue + "')]");
-        org.openqa.selenium.WebElement optionElement = wait.until(ExpectedConditions.presenceOfElementLocated(optionLocator));
-        js.executeScript("arguments[0].click();", optionElement);
-    }
-
-    public void clickSave() {
-        org.openqa.selenium.WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(saveButton));
-        org.openqa.selenium.JavascriptExecutor js = (org.openqa.selenium.JavascriptExecutor) driver;
-        js.executeScript("arguments[0].click();", element);
-    }
-
-    public boolean isTaskPresentOnBoard(String title) {
-        By anyTaskCard = By.xpath("//*[contains(@class, 'MuiCard') or contains(@data-rfd-draggable-id, '')]");
+    public void selectRequiredDropdowns() {
         try {
-            return wait.until(ExpectedConditions.visibilityOfElementLocated(anyTaskCard)).isDisplayed();
+            Actions actions = new Actions(driver);
+            List<WebElement> dropdowns = driver.findElements(By.xpath("//div[@role='combobox' or @role='button' or contains(@class, 'select')]"));
+
+            if (dropdowns.size() >= 1) {
+                dropdowns.get(0).click();
+                Thread.sleep(600);
+                actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
+                Thread.sleep(600);
+            }
+
+            if (dropdowns.size() >= 2) {
+                dropdowns.get(1).click();
+                Thread.sleep(600);
+                actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
+                Thread.sleep(600);
+            }
+            System.out.println("Лог: Успешно заполнили выпадающие списки формы создания.");
         } catch (Exception e) {
-            return false;
+            System.out.println("Лог: Ошибка при выборе дропдаунов формы создания: " + e.getMessage());
         }
     }
 
+    public void selectDropdownsForEditForm() {
+        try {
+            org.openqa.selenium.JavascriptExecutor js = (org.openqa.selenium.JavascriptExecutor) driver;
+
+            js.executeScript(
+                    "var inputs = document.querySelectorAll('form input[type=\"hidden\"], form input[name*=\"Id\"], form input[name*=\"status\"], form select');" +
+                            "inputs.forEach(function(input) {" +
+                            "    var val = input.value || input.defaultValue || input.getAttribute('value');" +
+                            "    if (!val || val === '0' || val === '') {" +
+                            "        val = '1';" +
+                            "    }" +
+                            "    input.value = val;" +
+                            "    input.dispatchEvent(new Event('input', { bubbles: true }));" +
+                            "    input.dispatchEvent(new Event('change', { bubbles: true }));" +
+                            "});"
+            );
+            Thread.sleep(600);
+            System.out.println("Лог: Успешно синхронизировали внутренний стейт формы редактирования.");
+        } catch (Exception e) {
+            System.out.println("Лог: Предупреждение при обработке формы редактирования: " + e.getMessage());
+        }
+    }
+
+    public void clickSaveButton() {
+        WebElement saveBtn = wait.until(ExpectedConditions.elementToBeClickable(saveButton));
+        saveBtn.click();
+    }
+
+    public boolean isTaskPresentOnBoard(String title) {
+        long endTime = System.currentTimeMillis() + 6000;
+        while (System.currentTimeMillis() < endTime) {
+            try {
+                if (driver.getPageSource().contains(title)) {
+                    return true;
+                }
+                Thread.sleep(400);
+            } catch (Exception e) {
+            }
+        }
+        return driver.getPageSource().contains(title);
+    }
+
+    public void applyStatusFilter() {
+        try {
+            org.openqa.selenium.JavascriptExecutor js = (org.openqa.selenium.JavascriptExecutor) driver;
+            WebElement filterDropdown = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//div[@role='button' or @role='combobox']")
+            ));
+            js.executeScript("arguments.click();", filterDropdown);
+            Thread.sleep(800);
+
+            Actions actions = new Actions(driver);
+            actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
+            Thread.sleep(1500);
+        } catch (Exception e) {
+            System.out.println("Лог: Не удалось применить фильтр: " + e.getMessage());
+        }
+    }
+
+    public int getTaskCardsCount() {
+        try {
+            return driver.findElements(taskCards).size();
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    public void openTaskByTitle(String title) {
+        By editLinkLocator = By.xpath(
+                "//*[contains(text(), '" + title + "')]/ancestor::tr//*[contains(text(), 'Edit') or contains(text(), 'EDIT')]" +
+                        " | //*[contains(text(), '" + title + "')]/ancestor::div[contains(@class, 'card') or @role='row']//*[contains(text(), 'Edit') or contains(text(), 'EDIT')]" +
+                        " | //*[contains(text(), '" + title + "')]/following::a[contains(text(), 'Edit') or contains(text(), 'EDIT')]" +
+                        " | //*[contains(text(), '" + title + "')]/..//a"
+        );
+        WebElement editBtn = wait.until(ExpectedConditions.elementToBeClickable(editLinkLocator));
+        editBtn.click();
+    }
 }

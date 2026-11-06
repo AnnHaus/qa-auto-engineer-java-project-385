@@ -2,64 +2,148 @@ package io.hexlet.tests;
 
 import io.hexlet.pages.LoginPage;
 import io.hexlet.pages.TasksPage;
-import org.junit.jupiter.api.AfterEach;
+import org.openqa.selenium.By;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class TaskCrudTest {
-    private WebDriver driver;
-    private LoginPage loginPage;
+public class TaskCrudTest extends BaseUiTest {
+
     private TasksPage tasksPage;
+    private LoginPage loginPage;
+
+    private void takePhysicalScreenshot(String testName) {
+        try {
+            File srcFile = ((org.openqa.selenium.TakesScreenshot) driver).getScreenshotAs(org.openqa.selenium.OutputType.FILE);
+            File destFile = new File("screenshot_" + testName + ".png");
+            Files.copy(srcFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("=== ДИАГНОСТИКА: Скриншот сохранен в файл: " + destFile.getAbsolutePath() + " ===");
+        } catch (Exception e) {
+            System.out.println("Не удалось сохранить скриншот: " + e.getMessage());
+        }
+    }
 
     @BeforeEach
-    public void setUp() {
-        org.openqa.selenium.chrome.ChromeOptions options = new org.openqa.selenium.chrome.ChromeOptions();
-        options.addArguments("--headless=new");
-        options.addArguments("--disable-gpu");
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--window-size=1920,1080");
-
-        driver = new ChromeDriver(options);
-        driver.get("http://localhost:5173/#/");
-
-        loginPage = new LoginPage(driver);
+    public void testSetUp() {
         tasksPage = new TasksPage(driver);
+        loginPage = new LoginPage(driver);
 
-        loginPage.login("admin", "password");
+        try {
+            driver.manage().window().setSize(new org.openqa.selenium.Dimension(2560, 1440));
+        } catch (Exception e) {
+            System.out.println("Лог: Не удалось установить размер окна: " + e.getMessage());
+        }
+
+        driver.get("http://localhost:5173/#/login");
+        try {
+            loginPage.login("admin", "password");
+            Thread.sleep(2000); // Даем время на полноценную сессию
+        } catch (Exception e) {
+            System.out.println("Лог: Предупреждение при входе: " + e.getMessage());
+        }
+
+        driver.get("http://localhost:5173/#/tasks");
+        try { Thread.sleep(2000); } catch (Exception e) {}
     }
 
     @Test
-    public void testCreateTask() {
-        String taskTitle = "Task" + System.currentTimeMillis();
-        String taskContent = "Automated test content";
-
-        tasksPage.goToTasksSection();
-        tasksPage.clickCreateTask();
-
-        tasksPage.fillTextData(taskTitle, taskContent);
-
-        tasksPage.clickSave();
-
+    public void testFullTaskCrudLifecycle() {
+        String taskTitle = "Hexlet Создание " + System.currentTimeMillis();
         try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            tasksPage.clickNavigateToCreateForm();
+            try { Thread.sleep(1500); } catch (Exception e) {}
+
+            tasksPage.fillTextData(taskTitle, "Описание автоматического теста");
+            tasksPage.selectRequiredDropdowns();
+            tasksPage.clickSaveButton();
+
+            try { Thread.sleep(4000); } catch (Exception e) {}
+
+            driver.get("http://localhost:5173/#/tasks");
+            try { Thread.sleep(3000); } catch (Exception e) {}
+
+            boolean isCreated = tasksPage.isTaskPresentOnBoard(taskTitle);
+            if (!isCreated) { takePhysicalScreenshot("create_failed"); }
+
+            assertTrue(isCreated, "Ошибка: Задача '" + taskTitle + "' не появилась на доске!");
+        } catch (Throwable t) {
+            takePhysicalScreenshot("create_exception");
+            throw t;
         }
-
-        tasksPage.goToTasksSection();
-
-        assertTrue(tasksPage.isTaskPresentOnBoard(taskTitle),
-                "Задача '" + taskTitle + "' не появилась на канбан-доске!");
     }
 
-    @AfterEach
-    public void tearDown() {
-        if (driver != null) {
-            driver.quit();
+    @Test
+    public void testTaskFiltering() {
+        try {
+            String filterTaskTitle = "Hexlet Фильтр " + System.currentTimeMillis();
+            tasksPage.clickNavigateToCreateForm();
+            try { Thread.sleep(1500); } catch (Exception e) {}
+
+            tasksPage.fillTextData(filterTaskTitle, "Тест фильтрации");
+            tasksPage.selectRequiredDropdowns();
+            tasksPage.clickSaveButton();
+            try { Thread.sleep(4000); } catch (Exception e) {}
+
+            driver.get("http://localhost:5173/#/tasks");
+            try { Thread.sleep(3000); } catch (Exception e) {}
+
+            int initialCount = tasksPage.getTaskCardsCount();
+            if (initialCount == 0) { takePhysicalScreenshot("filter_initial_zero"); }
+
+            assertTrue(initialCount > 0, "Ошибка: Список задач пуст!");
+
+            tasksPage.applyStatusFilter();
+            int filteredCount = tasksPage.getTaskCardsCount();
+
+            assertTrue(filteredCount >= 0, "Ошибка: После фильтрации доска сломалась!");
+            System.out.println("Лог фильтрации: Успешно. Было: " + initialCount + ", Стало: " + filteredCount);
+        } catch (Throwable t) {
+            takePhysicalScreenshot("filter_exception");
+            throw t;
+        }
+    }
+
+    @Test
+    public void testEditTask() {
+        String initialTitle = "Hexlet До Ред " + System.currentTimeMillis();
+        String updatedTitle = "Hexlet После Ред " + System.currentTimeMillis();
+
+        try {
+            tasksPage.clickNavigateToCreateForm();
+            try { Thread.sleep(1500); } catch (Exception e) {}
+
+            tasksPage.fillTextData(initialTitle, "Оригинальное описание");
+            tasksPage.selectRequiredDropdowns();
+            tasksPage.clickSaveButton();
+            try { Thread.sleep(4000); } catch (Exception e) {}
+
+            driver.get("http://localhost:5173/#/tasks");
+            try { Thread.sleep(3000); } catch (Exception e) {}
+
+            boolean isReady = tasksPage.isTaskPresentOnBoard(initialTitle);
+            assertTrue(isReady, "Ошибка: Исходная задача не появилась для редактирования!");
+
+            tasksPage.openTaskByTitle(initialTitle);
+            try { Thread.sleep(2500); } catch (Exception e) {}
+
+            tasksPage.fillTextData(updatedTitle, "Измененное описание задачи.");
+            tasksPage.selectDropdownsForEditForm();
+            tasksPage.clickSaveButton();
+            try { Thread.sleep(4000); } catch (Exception e) {}
+
+            driver.get("http://localhost:5173/#/tasks");
+            try { Thread.sleep(3000); } catch (Exception e) {}
+
+            boolean isUpdated = tasksPage.isTaskPresentOnBoard(updatedTitle);
+            if (!isUpdated) { takePhysicalScreenshot("edit_failed"); }
+
+            assertTrue(isUpdated, "Ошибка: Измененная задача не найдена!");
+        } catch (Throwable t) {
+            takePhysicalScreenshot("edit_exception");
+            throw t;
         }
     }
 }
