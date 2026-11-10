@@ -5,7 +5,6 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.interactions.Actions;
 import java.util.List;
 
 public class TasksPage extends BasePage {
@@ -15,6 +14,8 @@ public class TasksPage extends BasePage {
     private final By saveButton = By.xpath("//button[@type='submit' or contains(text(), 'SAVE') or contains(text(), 'Save') or contains(text(), 'Создать') or contains(text(), 'Сохранить')]");
     private final By taskCards = By.xpath("//*[contains(text(), 'EDIT') or contains(text(), 'Edit') or contains(text(), 'Редактировать')]");
     private final By createButtonOnBoard = By.xpath("//a[contains(@href, '/create') or contains(text(), 'CREATE') or contains(text(), 'Создать')]");
+
+    private final By menuOptions = By.xpath("//li[@role='option' or contains(@class, 'MenuItem') or contains(@class, 'option')]");
 
     public TasksPage(WebDriver driver) {
         super(driver);
@@ -41,21 +42,22 @@ public class TasksPage extends BasePage {
 
     public void selectRequiredDropdowns() {
         try {
-            Actions actions = new Actions(driver);
-            List<WebElement> dropdowns = driver.findElements(By.xpath("//div[@role='combobox' or @role='button' or contains(@class, 'select')]"));
+            org.openqa.selenium.JavascriptExecutor js = (org.openqa.selenium.JavascriptExecutor) driver;
 
-            if (dropdowns.size() >= 1) {
-                dropdowns.get(0).click();
-                Thread.sleep(800);
-                actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
-                Thread.sleep(600);
+            List<WebElement> dropdowns = driver.findElements(By.xpath("//div[@role='combobox' or @role='button' or contains(@class, 'select')]"));
+            if (!dropdowns.isEmpty()) {
+                js.executeScript("arguments[0].click();", dropdowns.get(0));
+                WebElement firstOption = wait.until(ExpectedConditions.elementToBeClickable(menuOptions));
+                js.executeScript("arguments[0].click();", firstOption);
+                Thread.sleep(400);
             }
 
+            dropdowns = driver.findElements(By.xpath("//div[@role='combobox' or @role='button' or contains(@class, 'select')]"));
             if (dropdowns.size() >= 2) {
-                dropdowns.get(1).click();
-                Thread.sleep(800);
-                actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
-                Thread.sleep(600);
+                js.executeScript("arguments[0].click();", dropdowns.get(1));
+                WebElement secondOption = wait.until(ExpectedConditions.elementToBeClickable(menuOptions));
+                js.executeScript("arguments[0].click();", secondOption);
+                Thread.sleep(400);
             }
         } catch (Exception e) {
             System.out.println("Лог: Предупреждение при выборе полей создания: " + e.getMessage());
@@ -64,24 +66,23 @@ public class TasksPage extends BasePage {
 
     public void selectDropdownsForEditForm() {
         try {
-            Actions actions = new Actions(driver);
-            List<WebElement> formDropdowns = driver.findElements(By.xpath("//form//div[@role='combobox' or @role='button' or contains(@class, 'select')]"));
+            org.openqa.selenium.JavascriptExecutor js = (org.openqa.selenium.JavascriptExecutor) driver;
 
+            List<WebElement> formDropdowns = driver.findElements(By.xpath("//form//div[@role='combobox' or @role='button' or contains(@class, 'select')]"));
             if (!formDropdowns.isEmpty()) {
-                formDropdowns.get(0).click();
-                Thread.sleep(800);
-                actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
-                Thread.sleep(600);
+                js.executeScript("arguments[0].click();", formDropdowns.get(0));
+                WebElement firstOption = wait.until(ExpectedConditions.elementToBeClickable(menuOptions));
+                js.executeScript("arguments[0].click();", firstOption);
+                Thread.sleep(400);
             }
 
             formDropdowns = driver.findElements(By.xpath("//form//div[@role='combobox' or @role='button' or contains(@class, 'select')]"));
             if (formDropdowns.size() >= 2) {
-                formDropdowns.get(1).click();
-                Thread.sleep(800);
-                actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
-                Thread.sleep(600);
+                js.executeScript("arguments[0].click();", formDropdowns.get(1));
+                WebElement secondOption = wait.until(ExpectedConditions.elementToBeClickable(menuOptions));
+                js.executeScript("arguments[0].click();", secondOption);
+                Thread.sleep(400);
             }
-            System.out.println("Лог: Успешно заполнили выпадающие списки формы редактирования.");
         } catch (Exception e) {
             System.out.println("Лог: Предупреждение при выборе полей редактирования: " + e.getMessage());
         }
@@ -109,10 +110,9 @@ public class TasksPage extends BasePage {
                     By.xpath("//div[@role='button' or @role='combobox' or contains(@class, 'select')]")
             ));
             js.executeScript("arguments.click();", filterDropdown);
-            Thread.sleep(800);
 
-            Actions actions = new Actions(driver);
-            actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
+            WebElement option = wait.until(ExpectedConditions.elementToBeClickable(menuOptions));
+            js.executeScript("arguments[0].click();", option);
             Thread.sleep(1500);
         } catch (Exception e) {
             System.out.println("Лог: Не удалось применить фильтр: " + e.getMessage());
