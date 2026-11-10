@@ -28,15 +28,13 @@ public class TasksPage extends BasePage {
     public void fillTextData(String title, String content) {
         WebElement titleInput = wait.until(ExpectedConditions.visibilityOfElementLocated(titleField));
         titleInput.click();
-        titleInput.sendKeys(Keys.chord(Keys.CONTROL, "a"));
-        titleInput.sendKeys(Keys.BACK_SPACE);
+        titleInput.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE);
         titleInput.clear();
         titleInput.sendKeys(title);
 
         WebElement contentInput = wait.until(ExpectedConditions.visibilityOfElementLocated(contentField));
         contentInput.click();
-        contentInput.sendKeys(Keys.chord(Keys.CONTROL, "a"));
-        contentInput.sendKeys(Keys.BACK_SPACE);
+        contentInput.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE);
         contentInput.clear();
         contentInput.sendKeys(content);
     }
@@ -60,29 +58,32 @@ public class TasksPage extends BasePage {
                 Thread.sleep(600);
             }
         } catch (Exception e) {
-            System.out.println("Лог: Предупреждение при выборе полей: " + e.getMessage());
+            System.out.println("Лог: Предупреждение при выборе полей создания: " + e.getMessage());
         }
     }
 
     public void selectDropdownsForEditForm() {
         try {
-            driver.switchTo().activeElement().sendKeys(Keys.TAB);
-            Thread.sleep(500);
-            driver.switchTo().activeElement().sendKeys(Keys.ARROW_DOWN);
-            Thread.sleep(300);
-            driver.switchTo().activeElement().sendKeys(Keys.ENTER);
-            Thread.sleep(500);
+            Actions actions = new Actions(driver);
+            List<WebElement> formDropdowns = driver.findElements(By.xpath("//form//div[@role='combobox' or @role='button' or contains(@class, 'select')]"));
 
-            driver.switchTo().activeElement().sendKeys(Keys.TAB);
-            Thread.sleep(500);
-            driver.switchTo().activeElement().sendKeys(Keys.ARROW_DOWN);
-            Thread.sleep(300);
-            driver.switchTo().activeElement().sendKeys(Keys.ENTER);
-            Thread.sleep(500);
+            if (!formDropdowns.isEmpty()) {
+                formDropdowns.get(0).click();
+                Thread.sleep(800);
+                actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
+                Thread.sleep(600);
+            }
 
-            System.out.println("Лог: Успешно заполнили поля формы редактирования через нативную TAB-последовательность.");
+            formDropdowns = driver.findElements(By.xpath("//form//div[@role='combobox' or @role='button' or contains(@class, 'select')]"));
+            if (formDropdowns.size() >= 2) {
+                formDropdowns.get(1).click();
+                Thread.sleep(800);
+                actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
+                Thread.sleep(600);
+            }
+            System.out.println("Лог: Успешно заполнили выпадающие списки формы редактирования.");
         } catch (Exception e) {
-            System.out.println("Лог: Предупреждение при клавиатурном выборе полей: " + e.getMessage());
+            System.out.println("Лог: Предупреждение при выборе полей редактирования: " + e.getMessage());
         }
     }
 
