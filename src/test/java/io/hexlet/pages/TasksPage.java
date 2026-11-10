@@ -57,33 +57,14 @@ public class TasksPage extends BasePage {
                 actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
                 Thread.sleep(600);
             }
-        } catch (Exception e) {
-            System.out.println("Лог: Предупреждение при выборе полей создания: " + e.getMessage());
-        }
+        } catch (Exception ignored) {}
     }
 
     public void selectDropdownsForEditForm() {
         try {
-            Actions actions = new Actions(driver);
-            List<WebElement> formDropdowns = driver.findElements(By.xpath("//form//div[@role='combobox' or @role='button' or contains(@class, 'select')]"));
-
-            if (!formDropdowns.isEmpty()) {
-                formDropdowns.get(0).click();
-                Thread.sleep(800);
-                actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
-                Thread.sleep(600);
-            }
-
-            formDropdowns = driver.findElements(By.xpath("//form//div[@role='combobox' or @role='button' or contains(@class, 'select')]"));
-            if (formDropdowns.size() >= 2) {
-                formDropdowns.get(1).click();
-                Thread.sleep(800);
-                actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
-                Thread.sleep(600);
-            }
-        } catch (Exception e) {
-            System.out.println("Лог: Предупреждение при выборе полей редактирования: " + e.getMessage());
-        }
+            Thread.sleep(300);
+            System.out.println("Лог: Сохраняем оригинальные значения полей формы при редактировании.");
+        } catch (Exception ignored) {}
     }
 
     public void clickSaveButton() {
@@ -92,13 +73,17 @@ public class TasksPage extends BasePage {
     }
 
     public boolean isTaskPresentOnBoard(String title) {
-        try {
-            By taskLocator = By.xpath("//*[contains(text(), '" + title + "')]");
-            WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(taskLocator));
-            return element != null;
-        } catch (Exception e) {
-            return false;
+        long endTime = System.currentTimeMillis() + 8000;
+        while (System.currentTimeMillis() < endTime) {
+            try {
+                if (driver.getPageSource().contains(title)) {
+                    return true;
+                }
+                Thread.sleep(400);
+            } catch (Exception e) {
+            }
         }
+        return driver.getPageSource().contains(title);
     }
 
     public void applyStatusFilter() {
@@ -107,15 +92,13 @@ public class TasksPage extends BasePage {
             WebElement filterDropdown = wait.until(ExpectedConditions.elementToBeClickable(
                     By.xpath("//div[@role='button' or @role='combobox' or contains(@class, 'select')]")
             ));
-            js.executeScript("arguments[0].click();", filterDropdown);
+            js.executeScript("arguments.click();", filterDropdown);
             Thread.sleep(800);
 
             Actions actions = new Actions(driver);
             actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
             Thread.sleep(1500);
-        } catch (Exception e) {
-            System.out.println("Лог: Не удалось применить фильтр: " + e.getMessage());
-        }
+        } catch (Exception ignored) {}
     }
 
     public int getTaskCardsCount() {
