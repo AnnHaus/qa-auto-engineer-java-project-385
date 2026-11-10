@@ -31,16 +31,30 @@ public class TaskCrudTest extends BaseUiTest {
         tasksPage = new TasksPage(driver);
         loginPage = new LoginPage(driver);
 
-        driver.get("http://localhost:5173/#/login");
+        try {
+            driver.manage().deleteAllCookies();
+        } catch (Exception ignored) {}
+
+        try {
+            driver.get("http://localhost:5173/#/login");
+        } catch (Exception e) {
+            try { Thread.sleep(1000); } catch (Exception ignored) {}
+            driver.get("http://localhost:5173/#/login");
+        }
+
         try {
             loginPage.login("admin", "password");
-            Thread.sleep(1500);
+            Thread.sleep(2000);
         } catch (Exception e) {
             System.out.println("Лог: Предупреждение при входе: " + e.getMessage());
         }
 
-        driver.get("http://localhost:5173/#/tasks");
-        try { Thread.sleep(1500); } catch (Exception e) {}
+        try {
+            driver.get("http://localhost:5173/#/tasks");
+            Thread.sleep(1500);
+        } catch (Exception e) {
+            driver.get("http://localhost:5173/#/tasks");
+        }
     }
 
     @Test
@@ -48,17 +62,16 @@ public class TaskCrudTest extends BaseUiTest {
         String taskTitle = "Hexlet Создание " + System.currentTimeMillis();
         try {
             tasksPage.clickNavigateToCreateForm();
-            try { Thread.sleep(1000); } catch (Exception e) {}
+            try { Thread.sleep(1500); } catch (Exception e) {}
 
             tasksPage.fillTextData(taskTitle, "Описание автоматического теста");
             tasksPage.selectRequiredDropdowns();
             tasksPage.clickSaveButton();
 
-            try { Thread.sleep(3500); } catch (Exception e) {}
+            try { Thread.sleep(4000); } catch (Exception e) {}
 
             driver.get("http://localhost:5173/#/tasks");
-            driver.navigate().refresh();
-            try { Thread.sleep(2000); } catch (Exception e) {}
+            try { Thread.sleep(2500); } catch (Exception e) {}
 
             boolean isCreated = tasksPage.isTaskPresentOnBoard(taskTitle);
             if (!isCreated) { takePhysicalScreenshot("create_failed"); }
@@ -75,16 +88,15 @@ public class TaskCrudTest extends BaseUiTest {
         try {
             String filterTaskTitle = "Hexlet Фильтр " + System.currentTimeMillis();
             tasksPage.clickNavigateToCreateForm();
-            try { Thread.sleep(1000); } catch (Exception e) {}
+            try { Thread.sleep(1500); } catch (Exception e) {}
 
             tasksPage.fillTextData(filterTaskTitle, "Тест фильтрации");
             tasksPage.selectRequiredDropdowns();
             tasksPage.clickSaveButton();
-            try { Thread.sleep(3000); } catch (Exception e) {}
+            try { Thread.sleep(4000); } catch (Exception e) {}
 
             driver.get("http://localhost:5173/#/tasks");
-            driver.navigate().refresh();
-            try { Thread.sleep(2000); } catch (Exception e) {}
+            try { Thread.sleep(2500); } catch (Exception e) {}
 
             int initialCount = tasksPage.getTaskCardsCount();
             if (initialCount == 0) { takePhysicalScreenshot("filter_initial_zero"); }
@@ -109,16 +121,15 @@ public class TaskCrudTest extends BaseUiTest {
 
         try {
             tasksPage.clickNavigateToCreateForm();
-            try { Thread.sleep(1000); } catch (Exception e) {}
+            try { Thread.sleep(1500); } catch (Exception e) {}
 
             tasksPage.fillTextData(initialTitle, "Оригинальное описание");
             tasksPage.selectRequiredDropdowns();
             tasksPage.clickSaveButton();
-            try { Thread.sleep(3500); } catch (Exception e) {}
+            try { Thread.sleep(4000); } catch (Exception e) {}
 
             driver.get("http://localhost:5173/#/tasks");
-            driver.navigate().refresh();
-            try { Thread.sleep(2000); } catch (Exception e) {}
+            try { Thread.sleep(2500); } catch (Exception e) {}
 
             boolean isReady = tasksPage.isTaskPresentOnBoard(initialTitle);
             assertTrue(isReady, "Ошибка: Исходная задача не появилась для редактирования!");
@@ -129,11 +140,10 @@ public class TaskCrudTest extends BaseUiTest {
             tasksPage.fillTextData(updatedTitle, "Измененное описание задачи.");
             tasksPage.selectDropdownsForEditForm();
             tasksPage.clickSaveButton();
-            try { Thread.sleep(3500); } catch (Exception e) {}
+            try { Thread.sleep(4000); } catch (Exception e) {}
 
             driver.get("http://localhost:5173/#/tasks");
-            driver.navigate().refresh();
-            try { Thread.sleep(2000); } catch (Exception e) {}
+            try { Thread.sleep(2500); } catch (Exception e) {}
 
             boolean isUpdated = tasksPage.isTaskPresentOnBoard(updatedTitle);
             if (!isUpdated) { takePhysicalScreenshot("edit_failed"); }
