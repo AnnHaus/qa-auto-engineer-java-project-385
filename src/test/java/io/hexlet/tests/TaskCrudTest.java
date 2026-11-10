@@ -15,6 +15,8 @@ public class TaskCrudTest extends BaseUiTest {
     private TasksPage tasksPage;
     private LoginPage loginPage;
 
+    private static boolean isLogged = false;
+
     private void takePhysicalScreenshot(String testName) {
         try {
             File srcFile = ((org.openqa.selenium.TakesScreenshot) driver).getScreenshotAs(org.openqa.selenium.OutputType.FILE);
@@ -31,29 +33,24 @@ public class TaskCrudTest extends BaseUiTest {
         tasksPage = new TasksPage(driver);
         loginPage = new LoginPage(driver);
 
-        try {
-            driver.manage().deleteAllCookies();
-        } catch (Exception ignored) {}
-
-        try {
-            driver.get("http://localhost:5173/#/login");
-        } catch (Exception e) {
-            try { Thread.sleep(1000); } catch (Exception ignored) {}
-            driver.get("http://localhost:5173/#/login");
-        }
-
-        try {
-            loginPage.login("admin", "password");
-            Thread.sleep(2000);
-        } catch (Exception e) {
-            System.out.println("Лог: Предупреждение при входе: " + e.getMessage());
+        if (!isLogged) {
+            try {
+                driver.get("http://localhost:5173/#/login");
+                Thread.sleep(1000);
+                loginPage.login("admin", "password");
+                Thread.sleep(2000);
+                isLogged = true; // Запоминаем, что вошли успешно
+                System.out.println("Лог: Успешная первоначальная авторизация пользователя admin.");
+            } catch (Exception e) {
+                System.out.println("Лог: Ошибка при входе: " + e.getMessage());
+            }
         }
 
         try {
             driver.get("http://localhost:5173/#/tasks");
             Thread.sleep(1500);
         } catch (Exception e) {
-            driver.get("http://localhost:5173/#/tasks");
+            System.out.println("Лог: Не удалось открыть главную страницу задач: " + e.getMessage());
         }
     }
 
