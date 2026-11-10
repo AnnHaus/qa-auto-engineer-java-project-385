@@ -9,6 +9,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class TaskCrudTest extends BaseUiTest {
 
@@ -39,8 +40,7 @@ public class TaskCrudTest extends BaseUiTest {
                 Thread.sleep(1000);
                 loginPage.login("admin", "password");
                 Thread.sleep(2000);
-                isLogged = true; // Запоминаем, что вошли успешно
-                System.out.println("Лог: Успешная первоначальная авторизация пользователя admin.");
+                isLogged = true;
             } catch (Exception e) {
                 System.out.println("Лог: Ошибка при входе: " + e.getMessage());
             }
@@ -144,8 +144,11 @@ public class TaskCrudTest extends BaseUiTest {
 
             boolean isUpdated = tasksPage.isTaskPresentOnBoard(updatedTitle);
             if (!isUpdated) { takePhysicalScreenshot("edit_failed"); }
-
             assertTrue(isUpdated, "Ошибка: Измененная задача не найдена!");
+
+            boolean isOldPresent = tasksPage.isTaskPresentOnBoard(initialTitle);
+            assertFalse(isOldPresent, "Ошибка: Старое название задачи всё ещё отображается на доске!");
+
         } catch (Throwable t) {
             takePhysicalScreenshot("edit_exception");
             throw t;
