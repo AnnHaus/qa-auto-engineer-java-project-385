@@ -5,6 +5,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.interactions.Actions;
 import java.util.List;
 
 public class TasksPage extends BasePage {
@@ -40,45 +41,48 @@ public class TasksPage extends BasePage {
 
     public void selectRequiredDropdowns() {
         try {
-            org.openqa.selenium.JavascriptExecutor js = (org.openqa.selenium.JavascriptExecutor) driver;
+            Actions actions = new Actions(driver);
+            List<WebElement> dropdowns = driver.findElements(By.xpath("//div[@role='combobox' or @role='button' or contains(@class, 'select')]"));
 
-            js.executeScript(
-                    "var inputs = document.querySelectorAll('form input[type=\"hidden\"], form input[name*=\"Id\"], form input[name*=\"status\"], form select');" +
-                            "inputs.forEach(function(input) {" +
-                            "    input.value = '1';" +
-                            "    if(input.tagName === 'SELECT') { input.selectedIndex = 1; }" +
-                            "    input.dispatchEvent(new Event('input', { bubbles: true }));" +
-                            "    input.dispatchEvent(new Event('change', { bubbles: true }));" +
-                            "});"
-            );
-            Thread.sleep(800);
-            System.out.println("Лог: Успешно форсировали выпадающие поля на форме создания.");
+            if (dropdowns.size() >= 1) {
+                dropdowns.get(0).click();
+                Thread.sleep(800);
+                actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
+                Thread.sleep(600);
+            }
+
+            if (dropdowns.size() >= 2) {
+                dropdowns.get(1).click();
+                Thread.sleep(800);
+                actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
+                Thread.sleep(600);
+            }
         } catch (Exception e) {
-            System.out.println("Лог: Ошибка при заполнении дропдаунов: " + e.getMessage());
+            System.out.println("Лог: Предупреждение при выборе полей создания: " + e.getMessage());
         }
     }
 
     public void selectDropdownsForEditForm() {
         try {
-            org.openqa.selenium.JavascriptExecutor js = (org.openqa.selenium.JavascriptExecutor) driver;
+            Actions actions = new Actions(driver);
+            List<WebElement> formDropdowns = driver.findElements(By.xpath("//form//div[@role='combobox' or @role='button' or contains(@class, 'select')]"));
 
-            js.executeScript(
-                    "var inputs = document.querySelectorAll('form input[type=\"hidden\"], form input[name*=\"Id\"], form input[name*=\"status\"], form select');" +
-                            "inputs.forEach(function(input) {" +
-                            "    var currentVal = input.value || input.defaultValue || input.getAttribute('value');" +
-                            "    if (!currentVal || currentVal === '0' || currentVal === '') {" +
-                            "        currentVal = '1';" +
-                            "    }" +
-                            "    input.value = currentVal;" +
-                            "    if(input.tagName === 'SELECT') { input.selectedIndex = 1; }" +
-                            "    input.dispatchEvent(new Event('input', { bubbles: true }));" +
-                            "    input.dispatchEvent(new Event('change', { bubbles: true }));" +
-                            "});"
-            );
-            Thread.sleep(800);
-            System.out.println("Лог: Успешно синхронизировали выпадающие поля на форме редактирования.");
+            if (!formDropdowns.isEmpty()) {
+                formDropdowns.get(0).click();
+                Thread.sleep(800);
+                actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
+                Thread.sleep(600);
+            }
+
+            formDropdowns = driver.findElements(By.xpath("//form//div[@role='combobox' or @role='button' or contains(@class, 'select')]"));
+            if (formDropdowns.size() >= 2) {
+                formDropdowns.get(1).click();
+                Thread.sleep(800);
+                actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
+                Thread.sleep(600);
+            }
         } catch (Exception e) {
-            System.out.println("Лог: Ошибка при синхронизации полей редактирования: " + e.getMessage());
+            System.out.println("Лог: Предупреждение при выборе полей редактирования: " + e.getMessage());
         }
     }
 
@@ -88,34 +92,27 @@ public class TasksPage extends BasePage {
     }
 
     public boolean isTaskPresentOnBoard(String title) {
-        long endTime = System.currentTimeMillis() + 6000;
-        while (System.currentTimeMillis() < endTime) {
-            try {
-                if (driver.getPageSource().contains(title)) {
-                    return true;
-                }
-                Thread.sleep(400);
-            } catch (Exception e) {
-            }
+        try {
+            By taskLocator = By.xpath("//*[contains(text(), '" + title + "')]");
+            WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(taskLocator));
+            return element != null;
+        } catch (Exception e) {
+            return false;
         }
-        return driver.getPageSource().contains(title);
     }
 
     public void applyStatusFilter() {
         try {
             org.openqa.selenium.JavascriptExecutor js = (org.openqa.selenium.JavascriptExecutor) driver;
-
             WebElement filterDropdown = wait.until(ExpectedConditions.elementToBeClickable(
                     By.xpath("//div[@role='button' or @role='combobox' or contains(@class, 'select')]")
             ));
             js.executeScript("arguments[0].click();", filterDropdown);
-            Thread.sleep(600);
+            Thread.sleep(800);
 
-            js.executeScript(
-                    "var options = document.querySelectorAll('li[role=\"option\"], .MuiMenuItem-root, [class*=\"option\"]');" +
-                            "if (options.length > 0) { options[0].click(); }"
-            );
-            Thread.sleep(2000);
+            Actions actions = new Actions(driver);
+            actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
+            Thread.sleep(1500);
         } catch (Exception e) {
             System.out.println("Лог: Не удалось применить фильтр: " + e.getMessage());
         }
