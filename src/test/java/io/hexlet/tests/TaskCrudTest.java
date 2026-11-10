@@ -3,13 +3,16 @@ package io.hexlet.tests;
 import io.hexlet.pages.LoginPage;
 import io.hexlet.pages.TasksPage;
 import org.openqa.selenium.By;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TaskCrudTest extends BaseUiTest {
 
     private TasksPage tasksPage;
@@ -26,21 +29,29 @@ public class TaskCrudTest extends BaseUiTest {
         }
     }
 
-    @BeforeEach
-    public void testSetUp() {
+    @BeforeAll
+    public void suiteSetUp() {
         tasksPage = new TasksPage(driver);
         loginPage = new LoginPage(driver);
 
-        driver.get("http://localhost:5173/#/login");
         try {
+            driver.get("http://localhost:5173/#/login");
+            Thread.sleep(1500);
             loginPage.login("admin", "password");
+            Thread.sleep(2000);
+        } catch (Exception e) {
+            System.out.println("Лог: Предупреждение при первоначальном входе: " + e.getMessage());
+        }
+    }
+
+    @BeforeEach
+    public void testSetUp() {
+        try {
+            driver.get("http://localhost:5173/#/tasks");
             Thread.sleep(1500);
         } catch (Exception e) {
-            System.out.println("Лог: Предупреждение при входе: " + e.getMessage());
+            System.out.println("Лог: Не удалось открыть главную страницу задач: " + e.getMessage());
         }
-
-        driver.get("http://localhost:5173/#/tasks");
-        try { Thread.sleep(1500); } catch (Exception e) {}
     }
 
     @Test

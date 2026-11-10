@@ -46,19 +46,19 @@ public class TasksPage extends BasePage {
 
             if (dropdowns.size() >= 1) {
                 dropdowns.get(0).click();
-                Thread.sleep(600);
+                Thread.sleep(800);
                 actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
                 Thread.sleep(600);
             }
 
             if (dropdowns.size() >= 2) {
                 dropdowns.get(1).click();
-                Thread.sleep(600);
+                Thread.sleep(800);
                 actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
                 Thread.sleep(600);
             }
         } catch (Exception e) {
-            System.out.println("Лог: Ошибка при выборе дропдаунов создания: " + e.getMessage());
+            System.out.println("Лог: Ошибка при выборе полей создания: " + e.getMessage());
         }
     }
 
@@ -69,7 +69,7 @@ public class TasksPage extends BasePage {
 
             if (!formDropdowns.isEmpty()) {
                 formDropdowns.get(0).click();
-                Thread.sleep(600);
+                Thread.sleep(800);
                 actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
                 Thread.sleep(600);
             }
@@ -77,12 +77,12 @@ public class TasksPage extends BasePage {
             formDropdowns = driver.findElements(By.xpath("//form//div[@role='combobox' or @role='button' or contains(@class, 'select')]"));
             if (formDropdowns.size() >= 2) {
                 formDropdowns.get(1).click();
-                Thread.sleep(600);
+                Thread.sleep(800);
                 actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
                 Thread.sleep(600);
             }
         } catch (Exception e) {
-            System.out.println("Лог: Ошибка при выборе дропдаунов редактирования: " + e.getMessage());
+            System.out.println("Лог: Ошибка при выборе полей редактирования: " + e.getMessage());
         }
     }
 
