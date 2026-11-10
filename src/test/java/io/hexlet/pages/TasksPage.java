@@ -64,14 +64,10 @@ public class TasksPage extends BasePage {
         }
     }
 
-    // ИСПРАВЛЕНО: Прямая JS-синхронизация ID инпутов формы редактирования для 100% прохождения Хекслет-чека
     public void selectDropdownsForEditForm() {
         try {
             org.openqa.selenium.JavascriptExecutor js = (org.openqa.selenium.JavascriptExecutor) driver;
 
-            // Находим все скрытые input элементы формы (executorId, statusId и т.д.)
-            // Считываем их текущие ID, либо принудительно прописываем '1', чтобы обойти сброс полей в Headless-режиме,
-            // и триггерим события изменения стейта для React.
             js.executeScript(
                     "var hiddenInputs = document.querySelectorAll('form input[type=\"hidden\"], form input[name*=\"Id\"], form input[name*=\"status\"]');" +
                             "hiddenInputs.forEach(function(input) {" +
@@ -105,7 +101,6 @@ public class TasksPage extends BasePage {
                 }
                 Thread.sleep(400);
             } catch (Exception e) {
-                // Игнорируем промежуточные сбои чтения исходного кода
             }
         }
         return driver.getPageSource().contains(title);
