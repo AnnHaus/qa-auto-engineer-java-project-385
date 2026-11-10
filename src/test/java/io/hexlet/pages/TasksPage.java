@@ -48,14 +48,14 @@ public class TasksPage extends BasePage {
 
             if (dropdowns.size() >= 1) {
                 dropdowns.get(0).click();
-                Thread.sleep(600);
+                Thread.sleep(800);
                 actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
                 Thread.sleep(600);
             }
 
             if (dropdowns.size() >= 2) {
                 dropdowns.get(1).click();
-                Thread.sleep(600);
+                Thread.sleep(800);
                 actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
                 Thread.sleep(600);
             }
@@ -67,24 +67,26 @@ public class TasksPage extends BasePage {
 
     public void selectDropdownsForEditForm() {
         try {
-            org.openqa.selenium.JavascriptExecutor js = (org.openqa.selenium.JavascriptExecutor) driver;
+            Actions actions = new Actions(driver);
+            List<WebElement> formDropdowns = driver.findElements(By.xpath("//form//div[@role='combobox' or @role='button' or contains(@class, 'select')]"));
 
-            js.executeScript(
-                    "var inputs = document.querySelectorAll('form input[type=\"hidden\"], form input[name*=\"Id\"], form input[name*=\"status\"], form select');" +
-                            "inputs.forEach(function(input) {" +
-                            "    var val = input.value || input.defaultValue || input.getAttribute('value');" +
-                            "    if (!val || val === '0' || val === '') {" +
-                            "        val = '1';" +
-                            "    }" +
-                            "    input.value = val;" +
-                            "    input.dispatchEvent(new Event('input', { bubbles: true }));" +
-                            "    input.dispatchEvent(new Event('change', { bubbles: true }));" +
-                            "});"
-            );
-            Thread.sleep(600);
-            System.out.println("Лог: Успешно синхронизировали внутренний стейт формы редактирования.");
+            if (formDropdowns.size() >= 1) {
+                formDropdowns.get(0).click();
+                Thread.sleep(800);
+                actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
+                Thread.sleep(600);
+            }
+
+            formDropdowns = driver.findElements(By.xpath("//form//div[@role='combobox' or @role='button' or contains(@class, 'select')]"));
+            if (formDropdowns.size() >= 2) {
+                formDropdowns.get(1).click();
+                Thread.sleep(800);
+                actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
+                Thread.sleep(600);
+            }
+            System.out.println("Лог: Успешно заполнили выпадающие списки формы редактирования карточки.");
         } catch (Exception e) {
-            System.out.println("Лог: Предупреждение при обработке формы редактирования: " + e.getMessage());
+            System.out.println("Лог: Предупреждение при выборе полей на форме редактирования: " + e.getMessage());
         }
     }
 
@@ -94,17 +96,13 @@ public class TasksPage extends BasePage {
     }
 
     public boolean isTaskPresentOnBoard(String title) {
-        long endTime = System.currentTimeMillis() + 6000;
-        while (System.currentTimeMillis() < endTime) {
-            try {
-                if (driver.getPageSource().contains(title)) {
-                    return true;
-                }
-                Thread.sleep(400);
-            } catch (Exception e) {
-            }
+        try {
+            By taskLocator = By.xpath("//*[contains(text(), '" + title + "')]");
+            WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(taskLocator));
+            return element != null;
+        } catch (Exception e) {
+            return false;
         }
-        return driver.getPageSource().contains(title);
     }
 
     public void applyStatusFilter() {

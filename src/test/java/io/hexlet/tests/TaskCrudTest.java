@@ -40,7 +40,7 @@ public class TaskCrudTest extends BaseUiTest {
         driver.get("http://localhost:5173/#/login");
         try {
             loginPage.login("admin", "password");
-            Thread.sleep(2000); // Даем время на полноценную сессию
+            Thread.sleep(2000);
         } catch (Exception e) {
             System.out.println("Лог: Предупреждение при входе: " + e.getMessage());
         }
@@ -63,7 +63,7 @@ public class TaskCrudTest extends BaseUiTest {
             try { Thread.sleep(4000); } catch (Exception e) {}
 
             driver.get("http://localhost:5173/#/tasks");
-            try { Thread.sleep(3000); } catch (Exception e) {}
+            try { Thread.sleep(2500); } catch (Exception e) {}
 
             boolean isCreated = tasksPage.isTaskPresentOnBoard(taskTitle);
             if (!isCreated) { takePhysicalScreenshot("create_failed"); }
@@ -88,7 +88,7 @@ public class TaskCrudTest extends BaseUiTest {
             try { Thread.sleep(4000); } catch (Exception e) {}
 
             driver.get("http://localhost:5173/#/tasks");
-            try { Thread.sleep(3000); } catch (Exception e) {}
+            try { Thread.sleep(2500); } catch (Exception e) {}
 
             int initialCount = tasksPage.getTaskCardsCount();
             if (initialCount == 0) { takePhysicalScreenshot("filter_initial_zero"); }
@@ -121,13 +121,14 @@ public class TaskCrudTest extends BaseUiTest {
             try { Thread.sleep(4000); } catch (Exception e) {}
 
             driver.get("http://localhost:5173/#/tasks");
-            try { Thread.sleep(3000); } catch (Exception e) {}
+            try { Thread.sleep(2500); } catch (Exception e) {}
 
             boolean isReady = tasksPage.isTaskPresentOnBoard(initialTitle);
+            if (!isReady) { takePhysicalScreenshot("edit_initial_failed"); }
             assertTrue(isReady, "Ошибка: Исходная задача не появилась для редактирования!");
 
             tasksPage.openTaskByTitle(initialTitle);
-            try { Thread.sleep(2500); } catch (Exception e) {}
+            try { Thread.sleep(2000); } catch (Exception e) {}
 
             tasksPage.fillTextData(updatedTitle, "Измененное описание задачи.");
             tasksPage.selectDropdownsForEditForm();
@@ -135,7 +136,7 @@ public class TaskCrudTest extends BaseUiTest {
             try { Thread.sleep(4000); } catch (Exception e) {}
 
             driver.get("http://localhost:5173/#/tasks");
-            try { Thread.sleep(3000); } catch (Exception e) {}
+            try { Thread.sleep(2500); } catch (Exception e) {}
 
             boolean isUpdated = tasksPage.isTaskPresentOnBoard(updatedTitle);
             if (!isUpdated) { takePhysicalScreenshot("edit_failed"); }
