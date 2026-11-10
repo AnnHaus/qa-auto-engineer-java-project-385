@@ -28,13 +28,15 @@ public class TasksPage extends BasePage {
     public void fillTextData(String title, String content) {
         WebElement titleInput = wait.until(ExpectedConditions.visibilityOfElementLocated(titleField));
         titleInput.click();
-        titleInput.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE);
+        titleInput.sendKeys(Keys.chord(Keys.CONTROL, "a"));
+        titleInput.sendKeys(Keys.BACK_SPACE);
         titleInput.clear();
         titleInput.sendKeys(title);
 
         WebElement contentInput = wait.until(ExpectedConditions.visibilityOfElementLocated(contentField));
         contentInput.click();
-        contentInput.sendKeys(Keys.chord(Keys.CONTROL, "a"), Keys.BACK_SPACE);
+        contentInput.sendKeys(Keys.chord(Keys.CONTROL, "a"));
+        contentInput.sendKeys(Keys.BACK_SPACE);
         contentInput.clear();
         contentInput.sendKeys(content);
     }
@@ -57,14 +59,31 @@ public class TasksPage extends BasePage {
                 actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
                 Thread.sleep(600);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            System.out.println("Лог: Предупреждение при выборе полей: " + e.getMessage());
+        }
     }
 
     public void selectDropdownsForEditForm() {
         try {
+            driver.switchTo().activeElement().sendKeys(Keys.TAB);
+            Thread.sleep(500);
+            driver.switchTo().activeElement().sendKeys(Keys.ARROW_DOWN);
             Thread.sleep(300);
-            System.out.println("Лог: Сохраняем оригинальные значения полей формы при редактировании.");
-        } catch (Exception ignored) {}
+            driver.switchTo().activeElement().sendKeys(Keys.ENTER);
+            Thread.sleep(500);
+
+            driver.switchTo().activeElement().sendKeys(Keys.TAB);
+            Thread.sleep(500);
+            driver.switchTo().activeElement().sendKeys(Keys.ARROW_DOWN);
+            Thread.sleep(300);
+            driver.switchTo().activeElement().sendKeys(Keys.ENTER);
+            Thread.sleep(500);
+
+            System.out.println("Лог: Успешно заполнили поля формы редактирования через нативную TAB-последовательность.");
+        } catch (Exception e) {
+            System.out.println("Лог: Предупреждение при клавиатурном выборе полей: " + e.getMessage());
+        }
     }
 
     public void clickSaveButton() {
@@ -73,17 +92,13 @@ public class TasksPage extends BasePage {
     }
 
     public boolean isTaskPresentOnBoard(String title) {
-        long endTime = System.currentTimeMillis() + 8000;
-        while (System.currentTimeMillis() < endTime) {
-            try {
-                if (driver.getPageSource().contains(title)) {
-                    return true;
-                }
-                Thread.sleep(400);
-            } catch (Exception e) {
-            }
+        try {
+            By taskLocator = By.xpath("//*[contains(text(), '" + title + "')]");
+            WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(taskLocator));
+            return element != null;
+        } catch (Exception e) {
+            return false;
         }
-        return driver.getPageSource().contains(title);
     }
 
     public void applyStatusFilter() {
@@ -98,7 +113,9 @@ public class TasksPage extends BasePage {
             Actions actions = new Actions(driver);
             actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
             Thread.sleep(1500);
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            System.out.println("Лог: Не удалось применить фильтр: " + e.getMessage());
+        }
     }
 
     public int getTaskCardsCount() {
