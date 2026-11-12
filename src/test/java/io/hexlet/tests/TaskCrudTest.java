@@ -2,7 +2,6 @@ package io.hexlet.tests;
 
 import io.hexlet.pages.LoginPage;
 import io.hexlet.pages.TasksPage;
-import org.openqa.selenium.By;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.io.File;
@@ -14,16 +13,14 @@ public class TaskCrudTest extends BaseUiTest {
 
     private TasksPage tasksPage;
     private LoginPage loginPage;
+    private String baseUrl;
 
     private void takePhysicalScreenshot(String testName) {
         try {
             File srcFile = ((org.openqa.selenium.TakesScreenshot) driver).getScreenshotAs(org.openqa.selenium.OutputType.FILE);
             File destFile = new File("screenshot_" + testName + ".png");
             Files.copy(srcFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            System.out.println("=== ДИАГНОСТИКА: Скриншот сохранен в файл: " + destFile.getAbsolutePath() + " ===");
-        } catch (Exception e) {
-            System.out.println("Не удалось сохранить скриншот: " + e.getMessage());
-        }
+        } catch (Exception ignored) {}
     }
 
     @BeforeEach
@@ -31,16 +28,22 @@ public class TaskCrudTest extends BaseUiTest {
         tasksPage = new TasksPage(driver);
         loginPage = new LoginPage(driver);
 
-        driver.get("http://localhost:5173/#/login");
+        baseUrl = System.getenv("APP_BASE_URL");
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            baseUrl = "http://localhost:5173";
+        }
+        if (baseUrl.endsWith("/")) {
+            baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+        }
+
+        driver.get(baseUrl + "/#/login");
         try {
             loginPage.login("admin", "password");
             Thread.sleep(1500);
-        } catch (Exception e) {
-            System.out.println("Лог: Предупреждение при входе: " + e.getMessage());
-        }
+        } catch (Exception ignored) {}
 
-        driver.get("http://localhost:5173/#/tasks");
-        try { Thread.sleep(1500); } catch (Exception e) {}
+        driver.get(baseUrl + "/#/tasks");
+        try { Thread.sleep(1500); } catch (Exception ignored) {}
     }
 
     @Test
@@ -48,16 +51,16 @@ public class TaskCrudTest extends BaseUiTest {
         String taskTitle = "Hexlet Создание " + System.currentTimeMillis();
         try {
             tasksPage.clickNavigateToCreateForm();
-            try { Thread.sleep(1000); } catch (Exception e) {}
+            try { Thread.sleep(1000); } catch (Exception ignored) {}
 
             tasksPage.fillTextData(taskTitle, "Описание автоматического теста");
             tasksPage.selectRequiredDropdowns();
             tasksPage.clickSaveButton();
 
-            try { Thread.sleep(3500); } catch (Exception e) {}
+            try { Thread.sleep(3500); } catch (Exception ignored) {}
 
-            driver.get("http://localhost:5173/#/tasks");
-            try { Thread.sleep(2000); } catch (Exception e) {}
+            driver.get(baseUrl + "/#/tasks");
+            try { Thread.sleep(2000); } catch (Exception ignored) {}
 
             boolean isCreated = tasksPage.isTaskPresentOnBoard(taskTitle);
             if (!isCreated) { takePhysicalScreenshot("create_failed"); }
@@ -74,15 +77,15 @@ public class TaskCrudTest extends BaseUiTest {
         try {
             String filterTaskTitle = "Hexlet Фильтр " + System.currentTimeMillis();
             tasksPage.clickNavigateToCreateForm();
-            try { Thread.sleep(1000); } catch (Exception e) {}
+            try { Thread.sleep(1000); } catch (Exception ignored) {}
 
             tasksPage.fillTextData(filterTaskTitle, "Тест фильтрации");
             tasksPage.selectRequiredDropdowns();
             tasksPage.clickSaveButton();
-            try { Thread.sleep(3000); } catch (Exception e) {}
+            try { Thread.sleep(3000); } catch (Exception ignored) {}
 
-            driver.get("http://localhost:5173/#/tasks");
-            try { Thread.sleep(2000); } catch (Exception e) {}
+            driver.get(baseUrl + "/#/tasks");
+            try { Thread.sleep(2000); } catch (Exception ignored) {}
 
             int initialCount = tasksPage.getTaskCardsCount();
             if (initialCount == 0) { takePhysicalScreenshot("filter_initial_zero"); }
@@ -93,7 +96,6 @@ public class TaskCrudTest extends BaseUiTest {
             int filteredCount = tasksPage.getTaskCardsCount();
 
             assertTrue(filteredCount >= 0, "Ошибка: После фильтрации доска сломалась!");
-            System.out.println("Лог фильтрации: Успешно. Было: " + initialCount + ", Стало: " + filteredCount);
         } catch (Throwable t) {
             takePhysicalScreenshot("filter_exception");
             throw t;
@@ -107,29 +109,29 @@ public class TaskCrudTest extends BaseUiTest {
 
         try {
             tasksPage.clickNavigateToCreateForm();
-            try { Thread.sleep(1000); } catch (Exception e) {}
+            try { Thread.sleep(1000); } catch (Exception ignored) {}
 
             tasksPage.fillTextData(initialTitle, "Оригинальное описание");
             tasksPage.selectRequiredDropdowns();
             tasksPage.clickSaveButton();
-            try { Thread.sleep(3500); } catch (Exception e) {}
+            try { Thread.sleep(3500); } catch (Exception ignored) {}
 
-            driver.get("http://localhost:5173/#/tasks");
-            try { Thread.sleep(2000); } catch (Exception e) {}
+            driver.get(baseUrl + "/#/tasks");
+            try { Thread.sleep(2000); } catch (Exception ignored) {}
 
             boolean isReady = tasksPage.isTaskPresentOnBoard(initialTitle);
             assertTrue(isReady, "Ошибка: Исходная задача не появилась для редактирования!");
 
             tasksPage.openTaskByTitle(initialTitle);
-            try { Thread.sleep(2000); } catch (Exception e) {}
+            try { Thread.sleep(2000); } catch (Exception ignored) {}
 
             tasksPage.fillTextData(updatedTitle, "Измененное описание задачи.");
             tasksPage.selectDropdownsForEditForm();
             tasksPage.clickSaveButton();
-            try { Thread.sleep(3500); } catch (Exception e) {}
+            try { Thread.sleep(3500); } catch (Exception ignored) {}
 
-            driver.get("http://localhost:5173/#/tasks");
-            try { Thread.sleep(2000); } catch (Exception e) {}
+            driver.get(baseUrl + "/#/tasks");
+            try { Thread.sleep(2000); } catch (Exception ignored) {}
 
             boolean isUpdated = tasksPage.isTaskPresentOnBoard(updatedTitle);
             if (!isUpdated) { takePhysicalScreenshot("edit_failed"); }
