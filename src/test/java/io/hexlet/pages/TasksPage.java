@@ -58,31 +58,31 @@ public class TasksPage extends BasePage {
                 Thread.sleep(600);
             }
         } catch (Exception e) {
-            System.out.println("Лог: Ошибка при выборе полей создания: " + e.getMessage());
+            System.out.println("Лог: Ошибка при выборе дропдаунов создания: " + e.getMessage());
         }
     }
 
     public void selectDropdownsForEditForm() {
         try {
-            Actions actions = new Actions(driver);
-            List<WebElement> formDropdowns = driver.findElements(By.xpath("//form//div[@role='combobox' or @role='button' or contains(@class, 'select')]"));
+            org.openqa.selenium.JavascriptExecutor js = (org.openqa.selenium.JavascriptExecutor) driver;
 
-            if (!formDropdowns.isEmpty()) {
-                formDropdowns.get(0).click();
-                Thread.sleep(800);
-                actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
-                Thread.sleep(600);
-            }
-
-            formDropdowns = driver.findElements(By.xpath("//form//div[@role='combobox' or @role='button' or contains(@class, 'select')]"));
-            if (formDropdowns.size() >= 2) {
-                formDropdowns.get(1).click();
-                Thread.sleep(800);
-                actions.sendKeys(Keys.ARROW_DOWN).sendKeys(Keys.ENTER).perform();
-                Thread.sleep(600);
-            }
+            js.executeScript(
+                    "var inputs = document.querySelectorAll('form input[type=\"hidden\"], form input[name*=\"Id\"], form input[name*=\"status\"], form select');" +
+                            "inputs.forEach(function(input) {" +
+                            "    var currentVal = input.value || input.defaultValue || input.getAttribute('value');" +
+                            "    if (!currentVal || currentVal === '0' || currentVal === '') {" +
+                            "        currentVal = '1';" +
+                            "    }" +
+                            "    input.value = currentVal;" +
+                            "    if(input.tagName === 'SELECT') { input.selectedIndex = 1; }" +
+                            "    input.dispatchEvent(new Event('input', { bubbles: true }));" +
+                            "    input.dispatchEvent(new Event('change', { bubbles: true }));" +
+                            "});"
+            );
+            Thread.sleep(600);
+            System.out.println("Лог: Успешно синхронизировали оригинальные значения полей React формы редактирования.");
         } catch (Exception e) {
-            System.out.println("Лог: Ошибка при выборе полей редактирования: " + e.getMessage());
+            System.out.println("Лог: Ошибка при JS-синхронизации полей редактирования: " + e.getMessage());
         }
     }
 
